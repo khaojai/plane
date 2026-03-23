@@ -84,7 +84,7 @@ pipeline {
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
                                 --no-cache \
-                                -f apps/web/Dockerfile.admin \
+                                -f apps/admin/Dockerfile.admin \
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-admin \
                                 .
                         """
@@ -92,7 +92,7 @@ pipeline {
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
                                 --no-cache \
-                                -f apps/web/Dockerfile.space \
+                                -f apps/space/Dockerfile.space \
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-space \
                                 .
                         """
@@ -100,7 +100,7 @@ pipeline {
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
                                 --no-cache \
-                                -f apps/web/Dockerfile.api \
+                                -f apps/api/Dockerfile.api \
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-api \
                                 .
                         """
@@ -108,7 +108,7 @@ pipeline {
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
                                 --no-cache \
-                                -f apps/web/Dockerfile.live \
+                                -f apps/live/Dockerfile.live \
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-live \
                                 .
                         """
