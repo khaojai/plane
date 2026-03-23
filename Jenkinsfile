@@ -56,7 +56,7 @@ pipeline {
             }
         }
 
-        stage('Building image') {
+        stage('Building Web') {
             steps{
                 script {
                     withCredentials([
@@ -80,6 +80,29 @@ pipeline {
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-web \
                                 .
                         """
+                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-web"
+                        sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-web || true"
+                    }
+                }
+            }
+        }
+
+        stage('Building Admin') {
+            steps{
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'khum38-gitlab',
+                            usernameVariable: 'GITLAB_USERNAME',
+                            passwordVariable: 'GITLAB_TOKEN'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'github-token',
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh "docker login -u ${GITLAB_USERNAME} -p ${GITLAB_TOKEN} registry.gitlab.com"
                         sh """
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
@@ -88,6 +111,29 @@ pipeline {
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-admin \
                                 .
                         """
+                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-admin"
+                        sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-admin || true"
+                    }
+                }
+            }
+        }
+
+        stage('Building Space') {
+            steps{
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'khum38-gitlab',
+                            usernameVariable: 'GITLAB_USERNAME',
+                            passwordVariable: 'GITLAB_TOKEN'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'github-token',
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh "docker login -u ${GITLAB_USERNAME} -p ${GITLAB_TOKEN} registry.gitlab.com"
                         sh """
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
@@ -96,14 +142,60 @@ pipeline {
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-space \
                                 .
                         """
+                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-space"
+                        sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-space || true"
+                    }
+                }
+            }
+        }
+
+        stage('Building API') {
+            steps{
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'khum38-gitlab',
+                            usernameVariable: 'GITLAB_USERNAME',
+                            passwordVariable: 'GITLAB_TOKEN'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'github-token',
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh "docker login -u ${GITLAB_USERNAME} -p ${GITLAB_TOKEN} registry.gitlab.com"
                         sh """
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
                                 --no-cache \
                                 -f apps/api/Dockerfile.api \
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-api \
-                                .
+                                ./apps/api
                         """
+                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-api"
+                        sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-api || true"
+                    }
+                }
+            }
+        }
+
+        stage('Building Live') {
+            steps{
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'khum38-gitlab',
+                            usernameVariable: 'GITLAB_USERNAME',
+                            passwordVariable: 'GITLAB_TOKEN'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'github-token',
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh "docker login -u ${GITLAB_USERNAME} -p ${GITLAB_TOKEN} registry.gitlab.com"
                         sh """
                             docker build \
                                 --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
@@ -112,35 +204,16 @@ pipeline {
                                 -t ${GITLAB_REP}:${IMAGE_TAG}-live \
                                 .
                         """
+                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-live"
+                        sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-live || true"
                     }
                 }
             }
         }
 
-        stage('Push image') {
-            steps{
-                script {
-                    withCredentials([
-                        usernamePassword(
-                            credentialsId: 'khum38-gitlab',
-                            usernameVariable: 'GITLAB_USERNAME',
-                            passwordVariable: 'GITLAB_TOKEN'
-                        )
-                    ]) {
-                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-web"
-                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-admin"
-                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-space"
-                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-api"
-                        sh "docker push ${GITLAB_REP}:${IMAGE_TAG}-live"
-                    }
-                }
-            }
-        }
         stage('Cleanup local image') {
             steps {
                 script {
-                    // Remove the pushed image tag from the agent to free disk space
-                    sh "docker image rm -f ${GITLAB_REP}:${IMAGE_TAG}-backend || true"
                     // Remove dangling layers created during build
                     sh "docker image prune -f || true"
                 }
